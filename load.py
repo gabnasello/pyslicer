@@ -1,14 +1,15 @@
 from pathlib import Path
 import slicer
 
-def load_zstack(zstack_file, channel, color='grey'):
+def load_zstack(zstack_file, spacing=None, channel='Channel:0:0', color='grey'):
     '''
     Load .czi z-stack images in Slicer. 
     Note that 3D Slicer takes individual channels as volume nodes
 
     Args:
         zstack_file (str): File path of the z-stack file
-        channel (str): Channel name in z-stack 
+        spacing (list): [x_res, y_res, z_res] Image spacing in µm along the 3 dimensions. By default, the information is automatically retrieved from the image metadata.
+        channel (str): Channel name in z-stack. Default is AICSImage output for images with only one channel ['Channel:0:0'].
         color (str): Display color of the Volume Node. Current colors are ('grey','yellow','red','green','blue'). Default is grey.
 
     Returns:
@@ -22,12 +23,13 @@ def load_zstack(zstack_file, channel, color='grey'):
 
     # Get the AICSImage object
     img = AICSImage(zstack_file)  # selects the first scene found
-
-    ## Print pixel sizes
-    x_res = img.physical_pixel_sizes.X  # returns the X dimension pixel size as found in the metadata
-    y_res = img.physical_pixel_sizes.Y  # returns the X dimension pixel size as found in the metadata
-    z_res = img.physical_pixel_sizes.Z  # returns the Z dimension pixel size as found in the metadata
-    size = [x_res, y_res, z_res]
+    
+    if spacing == None:
+        ## Print pixel sizes
+        x_res = img.physical_pixel_sizes.X  # returns the X dimension pixel size as found in the metadata
+        y_res = img.physical_pixel_sizes.Y  # returns the X dimension pixel size as found in the metadata
+        z_res = img.physical_pixel_sizes.Z  # returns the Z dimension pixel size as found in the metadata
+        spacing = [x_res, y_res, z_res]
 
     # The lines below used to work but now they raise the error 
     # "cannot get a schema for XML data, provide a schema argument"
@@ -44,7 +46,7 @@ def load_zstack(zstack_file, channel, color='grey'):
     unit = ['µm', 'µm', 'µm']
 
     data = {
-    "pixel_size": size,
+    "pixel_size": spacing,
     "unit": unit
     }
 

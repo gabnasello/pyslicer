@@ -73,6 +73,41 @@ def segments_by_thresholding(segments_greyvalues, segmentationNode, segmentEdito
         effect.setParameter("MaximumThreshold",str(thresholdMax))
         effect.self().onApply()
         
+def set_segments_color(segments_color, segmentationNode):
+    '''
+    
+    '''
+    
+    segmentation = segmentationNode.GetSegmentation()
+    
+    for segmentName in segments_color:
+        
+        segmentID = segmentation.GetSegmentIdBySegmentName(segmentName)
+        segment = segmentation.GetSegment(segmentID)
+        
+        color = segments_color[segmentName]
+        segment.SetColor(color)
+        
+def individual_segment_to_labelmapNode(segmentName, segmentationNode, volumeNode):
+    '''
+
+    '''
+    
+    labelmapNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLLabelMapVolumeNode')
+    labelmapNode.SetName('labelmapSegments')  
+    
+    segmentId = segmentationNode.GetSegmentation().GetSegmentIdBySegmentName(segmentName)
+    
+    from vtk import vtkStringArray
+    segmentId_array = vtkStringArray()
+    segmentId_array.InsertNextValue(segmentId)
+    
+    slicer.modules.segmentations.logic().ExportSegmentsToLabelmapNode(segmentationNode, segmentId_array, labelmapNode, volumeNode)
+    
+    labelmapNode.SetName(segmentName)
+    
+    return labelmapNode
+        
 def remove_small_islands(minimum_size, segment_name, segmentEditorNode, segmentEditorWidget):
     '''
     REMOVE_SMALL_ISLANDS operation from the [SegmentEditorIslandsEffect](https://github.com/Slicer/Slicer/blob/294ef47edbac2ccb194d5ee982a493696795cdc0/Modules/Loadable/Segmentations/EditorEffects/Python/SegmentEditorIslandsEffect.py#L402)
@@ -99,7 +134,24 @@ def split_islands(minimum_size, segment_name, segmentEditorNode, segmentEditorWi
     effect.setParameter("Operation","SPLIT_ISLANDS_TO_SEGMENTS")
     effect.self().onApply()
     
+def keep_largest_island(minimum_size, segment_name, segmentEditorNode, segmentEditorWidget):
+    '''
+    KEEP_LARGEST_ISLAND operation from the [SegmentEditorIslandsEffect](https://github.com/Slicer/Slicer/blob/294ef47edbac2ccb194d5ee982a493696795cdc0/Modules/Loadable/Segmentations/EditorEffects/Python/SegmentEditorIslandsEffect.py#L402)
+    '''
+    
+    segmentEditorNode.SetSelectedSegmentID(segment_name)
+    
+    segmentEditorWidget.setActiveEffectByName("Islands")
+    effect = segmentEditorWidget.activeEffect()
+    effect.setParameter("MinimumSize",str(minimum_size))
+    effect.setParameter("Operation","KEEP_LARGEST_ISLAND")
+    effect.self().onApply()
+    
 def gaussian_smoothing(gaussiaSD_mm, segment_name, segmentEditorNode, segmentEditorWidget):
+    '''
+    GAUSSIAN smoothing from the [SegmentEditorSmoothingEffect] (https://github.com/Slicer/Slicer/blob/294ef47edbac2ccb194d5ee982a493696795cdc0/Modules/Loadable/Segmentations/EditorEffects/Python/SegmentEditorSmoothingEffect.py)
+    '''
+    
     
     segmentEditorNode.SetSelectedSegmentID(segment_name)
     
@@ -107,4 +159,18 @@ def gaussian_smoothing(gaussiaSD_mm, segment_name, segmentEditorNode, segmentEdi
     effect = segmentEditorWidget.activeEffect()
     effect.setParameter("SmoothingMethod", "GAUSSIAN")
     effect.setParameter("GaussianStandardDeviationMm", gaussiaSD_mm)
+    effect.self().onApply()
+    
+
+def closing_holes(kernelSize_mm, segment_name, segmentEditorNode, segmentEditorWidget):
+    '''
+    Closing (fill holes) [MORPHOLOGICAL_CLOSING] smoothing from the [SegmentEditorSmoothingEffect] (https://github.com/Slicer/Slicer/blob/294ef47edbac2ccb194d5ee982a493696795cdc0/Modules/Loadable/Segmentations/EditorEffects/Python/SegmentEditorSmoothingEffect.py)
+    '''
+    
+    segmentEditorNode.SetSelectedSegmentID(segment_name)
+    
+    segmentEditorWidget.setActiveEffectByName("Smoothing")
+    effect = segmentEditorWidget.activeEffect()
+    effect.setParameter("SmoothingMethod", "MORPHOLOGICAL_CLOSING")
+    effect.setParameter("KernelSizeMm", kernelSize_mm)
     effect.self().onApply()

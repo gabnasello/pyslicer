@@ -1,7 +1,55 @@
 from pathlib import Path
 import slicer
 
-def load_zstack(zstack_file, spacing=None, channel='Channel:0:0', color='grey'):
+def imagestacks(first_image_file, spacing=False, quality='preview', volumeName='Volume'):
+    '''
+    Load stack of image files as a 3D volume into 3D Slicer.
+
+    Note that the [SlicerMoprh](https://github.com/SlicerMorph/SlicerMorph#installation) extension is required! 
+
+    Args:
+        first_image_file (str): File path of the first image file of the stack
+        spacing (list): [x_res, y_res, z_res] Image spacing in mm along the 3 dimensions. By default, the information is automatically retrieved from the image metadata.
+        quality (str): Quality resolution of the output volume ['preview', 'half', 'full']. Default is 'preview'.
+
+    Returns:
+        masterVolumeNode (slicer.vtkMRMLScalarVolumeNode): Volume Node with of the loaded image stack.
+    '''
+    
+    ## Set 'ImageStacks' as currently active module
+    
+    slicer.util.selectModule('ImageStacks')
+    # Python scripted modules
+    moduleWidget = slicer.modules.imagestacks.widgetRepresentation().self()
+    
+    ## load image stack
+    
+    # User selects a file like "/opt/data/image-0001.tif"
+    moduleWidget.archetypeText.text = first_image_file
+    
+    # The populateFromArchetype method will populate the file list with all files 
+    # that match the numbering pattern in that directory
+    moduleWidget.populateFromArchetype()
+    
+    if spacing != False:
+        moduleWidget.spacingWidget.coordinates = f"{spacing[0]},{spacing[1]},{spacing[2]}"
+        
+    # Modifying only the ```logic``` of the ImageStack module does not change the Quality Button at the User Interface (UI). 
+    # However, the new quality is set, as indicated by the output spacing in the UI.
+    if quality != 'preview':
+        moduleWidget.logic.outputQuality = quality
+        moduleWidget.updateWidgetFromLogic()
+    
+    ## Instantiate and add a VolumeNode to the scene.
+    masterVolumeNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLScalarVolumeNode", volumeName)
+    
+    # Load the files in paths to outputNode.
+    moduleWidget.logic.loadVolume(outputNode = masterVolumeNode)
+
+    return masterVolumeNode
+
+
+def zstack(zstack_file, spacing=None, channel='Channel:0:0', color='grey'):
     '''
     Load .czi z-stack images in Slicer. 
     Note that 3D Slicer takes individual channels as volume nodes
@@ -96,7 +144,7 @@ def load_zstack(zstack_file, spacing=None, channel='Channel:0:0', color='grey'):
 
     return masterVolumeNode
 
-def load_model(model_file, name = None, color=None):
+def model(model_file, name = None, color=None):
     '''
     Load model file (e.g. .vtk, .stl) in Slicer. 
 

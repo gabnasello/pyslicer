@@ -14,7 +14,7 @@ def set_window_level(window, level, volumeNode):
     displayNode.SetWindow(window)
     displayNode.SetLevel(level)
     
-def plot_histogram(volumeNode, threshold=None, xlabel='Voxel Intensity', ylabel='Counts', title=None):
+def plot_histogram(volumeNode, threshold=None, xlabel='Voxel Intensity', ylabel='Counts', ylog=None, xlog=None, bins=50, title=None):
     '''
     Plotting voxel histogram using matplotlib.
     
@@ -25,6 +25,9 @@ def plot_histogram(volumeNode, threshold=None, xlabel='Voxel Intensity', ylabel=
         thresholds (list): list of thresholding values to display as vertical lines. Default None.
         xlabel (str): x-axis label of matplotlib plot. Default 'Voxel Intensity'.
         ylabel (str): y-axis label of matplotlib plot. Default 'Counts'.
+        yscale (str): Set the yaxis' scale {"linear", "log", "symlog", "logit", ...}.
+        xscale (str): Set the xaxis' scale {"linear", "log", "symlog", "logit", ...}.
+        bins (int): it defines the number of equal-width bins in the given range (10, by default)
         title (str): title of matplotlib plot. Default None.
     '''
     import JupyterNotebooksLib as slicernb
@@ -52,7 +55,13 @@ def plot_histogram(volumeNode, threshold=None, xlabel='Voxel Intensity', ylabel=
     plt.ylabel(ylabel)
     if title:
         plt.title(title)
+     
+    if yscale:
+        plt.yscale(yscale)
     
+    if xscale:
+        plt.xscale(xscale)
+       
     if threshold != None:
         for thresh in threshold:
             ax.axvline(thresh, color='r')

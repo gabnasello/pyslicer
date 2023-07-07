@@ -14,7 +14,7 @@ def set_window_level(window, level, volumeNode):
     displayNode.SetWindow(window)
     displayNode.SetLevel(level)
     
-def plot_histogram(volumeNode, threshold=None, xlabel='Voxel Intensity', ylabel='Counts', ylog=None, xlog=None, bins=50, title=None):
+def plot_histogram(volumeNode, threshold=None, xlabel='Voxel Intensity', ylabel='Counts', yscale=None, xscale=None, bins=50, title=None):
     '''
     Plotting voxel histogram using matplotlib.
     

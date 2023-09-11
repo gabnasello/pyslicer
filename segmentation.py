@@ -38,7 +38,24 @@ def segment_statistics(segmentationNode):
     stats = segStatLogic.getStatistics()
     
     return stats
-    
+
+def compute_threshold(method, volumeNode):
+    '''
+    **kwargs: arguments for pyslicer.volume.plot_histogram()
+    '''
+    from vtkITK import vtkITKImageThresholdCalculator
+
+    thresholdCalculator = vtkITKImageThresholdCalculator()
+    thresholdCalculator.SetInputData(volumeNode.GetImageData())
+
+    method_number = thresholdCalculator.__getattribute__('METHOD_' + method.upper())
+
+    thresholdCalculator.SetMethod(method_number)
+    thresholdCalculator.Update()
+
+    threshold = thresholdCalculator.GetThreshold()
+       
+    return threshold
 
 def copy_segment_newNode(segment_name, input_segmentationNode, output_segmentationNode):
     '''

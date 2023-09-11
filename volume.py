@@ -22,7 +22,7 @@ def plot_histogram(volumeNode, threshold=None, xlabel='Voxel Intensity', ylabel=
     
     Args:
         volumeNode (slicer.vtkMRMLVolumeNode): Volume Node to plot
-        thresholds (list): list of thresholding values to display as vertical lines. Default None.
+        thresholds (float or list): list of thresholding values to display as vertical lines. Default None.
         xlabel (str): x-axis label of matplotlib plot. Default 'Voxel Intensity'.
         ylabel (str): y-axis label of matplotlib plot. Default 'Counts'.
         yscale (str): Set the yaxis' scale {"linear", "log", "symlog", "logit", ...}.
@@ -63,7 +63,10 @@ def plot_histogram(volumeNode, threshold=None, xlabel='Voxel Intensity', ylabel=
         plt.xscale(xscale)
        
     if threshold != None:
-        for thresh in threshold:
-            ax.axvline(thresh, color='r')
+        if isinstance(threshold, float):
+            ax.axvline(threshold, color='r')
+        else: # threshold is a list
+            for thresh in threshold:
+                ax.axvline(thresh, color='r')
     
     return slicernb.MatplotlibDisplay(plt)

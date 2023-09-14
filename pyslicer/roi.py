@@ -1,7 +1,7 @@
 import numpy as np
 import slicer
 
-def points_from_markup(nodename = 'F'):   
+def points_from_markupLine(nodename = 'F'):   
     '''
     Extract points from a Point List Node 
 
@@ -32,7 +32,65 @@ def points_from_markup(nodename = 'F'):
         
     return df_points
 
-def box_from_points(df_points):
+def objectBounds_from_markupROI(nodename = 'R'):   
+    '''
+    Extract the bounds of the ROI Markup Node in a coordinate system centered in the ROI center and oriented as the ROI principal axes.
+
+    Args:
+        nodename (str): Name of the ROI markup node. Default "R"
+
+    Returns:
+        df_points (pandas.DataFrame): pandas dataframe listing the ROI boundary points in a (r,s,a) coordinate system centered in the ROI center and oriented as the ROI principal axes.
+    '''
+
+    from numpy import zeros
+    from pandas import DataFrame
+
+    roiNode = slicer.util.getNode(nodename)
+    
+    bounds = zeros(6)
+    roiNode.GetObjectBounds(bounds)
+
+    colnames = ['r', 'a', 's']
+    df_points = DataFrame(data=bounds.reshape([3,2]).transpose(), columns=colnames)
+        
+    return df_points
+
+def box_from_ROI(nodename = 'R'):
+    '''
+    Make a box model node from a ROI markup node
+
+    Args:
+        nodename (str): Name of the ROI markup node. Default "R"
+
+    Returns:
+        boxNode (MRMLCore.vtkMRMLModelNode()): pandas dataframe listing all points in (r,s,a) world coordinate system
+    '''
+    
+    from trimesh.primitives import Box
+    from pyvista import wrap
+
+    roiNode = slicer.util.getNode(nodename)
+    
+    # Get ROI object bounds
+    obj_bounds = objectBounds_from_markupROI(nodename = nodename)
+    
+    # Create a box centered in the origin (world coordinate system)
+    box_primitive = Box(bounds=obj_bounds)
+    box = wrap(box_primitive.to_mesh())
+    boxNode = slicer.modules.models.logic().AddModel(box)   
+
+    # Get the ROI transform and align the box to the ROI
+    vtkmatrix = roiNode.GetObjectToWorldMatrix() 
+
+    # Apply transformation to the box Model
+    transformNode = slicer.mrmlScene.AddNewNodeByClass("vtkMRMLTransformNode")
+    transformNode.SetMatrixTransformToParent(vtkmatrix);
+    boxNode.SetAndObserveTransformNodeID(transformNode.GetID());
+    
+    return boxNode
+
+def bounding_box_from_points(df_points):
     '''
     Make a box model node from point list
 
@@ -54,6 +112,7 @@ def box_from_points(df_points):
     boxNode = slicer.modules.models.logic().AddModel(box)
     
     return boxNode
+
 
 def roi_bounding_segments(segmentationNode):
     '''

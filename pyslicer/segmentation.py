@@ -163,6 +163,21 @@ def keep_largest_island(minimum_size, segment_name, segmentEditorNode, segmentEd
     effect.setParameter("MinimumSize",str(minimum_size))
     effect.setParameter("Operation","KEEP_LARGEST_ISLAND")
     effect.self().onApply()
+
+def logical_intersect(segment_name, modifier_segment_name, segmentationNode, segmentEditorNode, segmentEditorWidget):
+    '''
+    '''
+    
+    segmentEditorNode.SetSelectedSegmentID(segment_name)
+    
+    modifier_segmentId = segmentationNode.GetSegmentation().GetSegmentIdBySegmentName(modifier_segment_name)
+    
+    segmentEditorWidget.setActiveEffectByName("Logical operators")
+    effect = segmentEditorWidget.activeEffect()
+    effect.setParameter("Operation","INTERSECT")
+    effect.setParameter("ModifierSegmentID", modifier_segmentId)
+    effect.self().onApply()
+
     
 def gaussian_smoothing(gaussiaSD_mm, segment_name, segmentEditorNode, segmentEditorWidget):
     '''

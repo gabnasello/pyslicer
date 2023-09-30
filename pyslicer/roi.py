@@ -1,37 +1,6 @@
 import numpy as np
 import slicer
 
-def points_from_markupLine(nodename = 'F'):   
-    '''
-    Extract points from a Point List Node 
-
-    Args:
-        nodename (str): Name of the markup node containing the poiunt list. Default "F"
-
-    Returns:
-        df_points (pandas.DataFrame): pandas dataframe listing all points in (r,s,a) coordinate system
-    '''
-
-    from pandas import DataFrame, concat
-    from vtk import vtkVector3d
-
-    lineListNode = slicer.util.getNode(nodename)
-
-    #colnames = ['x', 'y', 'z']
-    colnames = ['r', 'a', 's']
-    df_points = DataFrame(columns=colnames)
-
-    for i in range(lineListNode.GetNumberOfControlPoints()):
-        pt = vtkVector3d(0,0,0)
-        lineListNode.GetNthControlPointPosition(i,pt)
-
-        # append point data to points_df
-        df = DataFrame(data = [list(pt)], columns=colnames, index = [i])
-
-        df_points = concat([df_points, df])
-        
-    return df_points
-
 def objectBounds_from_markupROI(nodename = 'R'):   
     '''
     Extract the bounds of the ROI Markup Node in a coordinate system centered in the ROI center and oriented as the ROI principal axes.

@@ -32,9 +32,9 @@ def decimate_model(modelNode, reductionFactor = 0.8):
     return modelNode_deciamted
 
 def create_hollow_cylinder(height=1, 
-                           radius_inf=0.5, radius_sup=1, space =5, 
+                           radius_inner=0.5, radius_outer=1, space =5, 
                            direction=(1, 0, 0),
-                           transformNode=False,
+                           transform=False,
                            nameModel='Cylinder', 
                            color=(230/255, 230/255, 77/255), 
                            opacity=1):
@@ -42,13 +42,20 @@ def create_hollow_cylinder(height=1,
     from pyvista import CylinderStructured
     from numpy import linspace
     from vtk import vtkMatrix4x4
+    from numpy import ndarray
     
-    cyl_hollow = CylinderStructured(radius=linspace(radius_inf, radius_sup, space), height=height, direction=(0, 0, 1))
+    cyl_hollow = CylinderStructured(radius=linspace(radius_inner, radius_outer, space), height=height, direction=(0, 0, 1))
 
-    if transformNode is not False:
-        transformMatrix = vtkMatrix4x4()
-        transformNode.GetMatrixTransformToWorld(transformMatrix)
-        cyl_hollow = cyl_hollow.transform(slicer.util.arrayFromVTKMatrix(transformMatrix))
+    if transform is not False:
+        if isinstance(transform, slicer.vtkMRMLTransformNode):
+            transformMatrix = vtkMatrix4x4()
+            transform.GetMatrixTransformToWorld(transformMatrix)
+            transformArray = slicer.util.arrayFromVTKMatrix(transformMatrix)
+
+        if isinstance(transform, ndarray):
+            transformArray = transform
+        
+        cyl_hollow = cyl_hollow.transform(transformArray)
 
     cyl_node = slicer.modules.models.logic().AddModel(cyl_hollow.extract_surface())
         

@@ -75,28 +75,33 @@ def project_markupPoints_to_plane(pointNodename,
 
     return projected_points
 
-def voronoi_diagram(points, keep_inside_vertices=True):
+def voronoi_diagram(points, only_inside_vertices=True):
 
     from scipy.spatial import Voronoi
     
     # Get Voronoid diagram of the projected points
     vor = Voronoi(points)
     
-    # Store only vertices inside points
-    if keep_inside_vertices:
+    # Store only vertices inside convex hull of points
+    if only_inside_vertices:
+        def in_hull(p, hull):
+            """
+            Test if points in `p` are in `hull`
         
-        from shapely.geometry import Polygon, Point
-               
-        poly = Polygon(points)
-        inside_voronoi_vertices = []
-        for i in vor.vertices:
-            if Point(i).within(poly):
-                inside_voronoi_vertices.append(i)
+            `p` should be a `NxK` coordinates of `N` points in `K` dimensions
+            `hull` is either a scipy.spatial.Delaunay object or the `MxK` array of the 
+            coordinates of `M` points in `K`dimensions for which Delaunay triangulation
+            will be computed
+            """
+            from scipy.spatial import Delaunay
+            if not isinstance(hull,Delaunay):
+                hull = Delaunay(hull)
+        
+            return hull.find_simplex(p)>=0
 
-        from numpy import array
-        inside_voronoi_vertices = array(inside_voronoi_vertices)
+        inside_hull = in_hull(vor.vertices, points)
         
-        return inside_voronoi_vertices, vor
+        return vor.vertices[inside_hull], vor
 
     return vor.vertices, vor
 

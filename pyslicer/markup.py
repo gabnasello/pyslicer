@@ -56,3 +56,70 @@ def minimumCylinder_from_pointMarkup(pointNodename = 'F', nameCylinder = 'Cylind
     cylinderNode.SetName(nameCylinder)
 
     return cylinderNode, cylinder_dict
+
+
+def project_markupPoints_to_plane(pointNodename, 
+                                  plane_normal=(0,0,1), 
+                                  plane_origin=(0,0,0), 
+                                  return_planar=True):
+
+    from trimesh.points import project_to_plane
+    
+    df_points = points_from_markup(pointNodename)
+            
+    projected_points = project_to_plane(df_points.to_numpy(), 
+                                        plane_normal=plane_normal,
+                                        plane_origin=plane_origin,
+                                        return_planar=return_planar
+                                       )  
+
+    return projected_points
+
+def voronoi_diagram(points, keep_inside_vertices=True):
+
+    from scipy.spatial import Voronoi
+    
+    # Get Voronoid diagram of the projected points
+    vor = Voronoi(points)
+    
+    # Store only vertices inside points
+    if keep_inside_vertices:
+        
+        from shapely.geometry import Polygon, Point
+               
+        poly = Polygon(points)
+        inside_voronoi_vertices = []
+        for i in vor.vertices:
+            if Point(i).within(poly):
+                inside_voronoi_vertices.append(i)
+
+        from numpy import array
+        inside_voronoi_vertices = array(inside_voronoi_vertices)
+        
+        return inside_voronoi_vertices, vor
+
+    return vor.vertices, vor
+
+def get_furthest_voronoi_vertex(voronoid_vertices, points):
+    
+    from numpy import asarray, argmin
+    from numpy.linalg import norm
+    
+    # Find furthest Voronoi node from the point cloud
+    def closest_node(node, nodes):
+        nodes = asarray(nodes)
+        deltas = nodes - node
+        dist = norm(deltas, axis=1)
+        min_idx = argmin(dist)
+        return nodes[min_idx], dist[min_idx], deltas[min_idx][1]/deltas[min_idx][0]  # point, distance, slope
+    
+    if len(points) >= 4:
+        defect_radius = 0
+        center_defect = None
+        for v in voronoid_vertices:
+            _, d, _ = closest_node(v, points)
+            if d > defect_radius:
+                defect_radius = d
+                center_defect = v
+
+    return center_defect, defect_radius

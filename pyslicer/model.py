@@ -32,8 +32,9 @@ def decimate_model(modelNode, reductionFactor = 0.8):
     return modelNode_deciamted
 
 def create_hollow_cylinder(height=1, 
-                           radius_inner=0.5, radius_outer=1, space =5, 
-                           direction=(1, 0, 0),
+                           radius_inner=0, radius_outer=1, space =5, 
+                           center=(0.0, 0.0, 0.0),
+                           direction=(0, 0, 1),
                            transform=False,
                            nameModel='Cylinder', 
                            color=(230/255, 230/255, 77/255), 
@@ -44,7 +45,7 @@ def create_hollow_cylinder(height=1,
     from vtk import vtkMatrix4x4
     from numpy import ndarray
     
-    cyl_hollow = CylinderStructured(radius=linspace(radius_inner, radius_outer, space), height=height, direction=(0, 0, 1))
+    cyl_hollow = CylinderStructured(radius=linspace(radius_inner, radius_outer, space), height=height, direction=direction, center=center)
 
     if transform is not False:
         if isinstance(transform, slicer.vtkMRMLTransformNode):

@@ -91,31 +91,15 @@ def register_model_to_points(inputModel, inputFiducials):
 
     return transformNode
 
-def extrude_polygon_from_points(points,
-                                height=1, 
-                                rotate_z=0,
-                                scale=(0, 0, 0),
-                                transform=False,
-                                nameModel='Extrude', 
-                                color=(230/255, 230/255, 77/255), 
-                                opacity=1):
+def sort_points_clockwise(points, clockwise=True):
 
-    """
-    Convert a sequence of 2d coordinates to an extruded polygon
-    """
-    
-    from pyvista import PolyData
-    from vtk import vtkMatrix4x4
-    from numpy import ndarray
+    from numpy import ndarray, array
     from math import atan2
-    
-    z0 = 0
 
     if isinstance(points, ndarray):
-        points = points.tolist()
-
-    # Sort coordinates in python in a clockwise direction
-    # https://stackoverflow.com/questions/67735537/how-to-sort-coordinates-in-python-in-a-clockwise-direction
+        points_list = points.tolist()
+    else:
+        points_list = points
     
     def argsort(seq):
         #http://stackoverflow.com/questions/3382352/equivalent-of-numpy-argsort-in-basic-python/3382369#3382369
@@ -138,7 +122,36 @@ def extrude_polygon_from_points(points,
         l = len(x)
         return sum(x) / l, sum(y) / l
 
-    points = rotational_sort(points, centeroid_list_points(points),True)
+    points_sorted = rotational_sort(points_list, centeroid_list_points(points), clockwise)
+
+    if isinstance(points, ndarray):
+        points_sorted = array(points_sorted)
+
+    return points_sorted
+
+def extrude_polygon_from_points(points,
+                                height=1, 
+                                rotate_z=0,
+                                scale=(0, 0, 0),
+                                transform=False,
+                                nameModel='Extrude', 
+                                color=(230/255, 230/255, 77/255), 
+                                opacity=1):
+
+    """
+    Convert a sequence of 2d coordinates to an extruded polygon
+    """
+    
+    from pyvista import PolyData
+    from vtk import vtkMatrix4x4
+    from numpy import ndarray
+    
+    z0 = 0
+
+    if isinstance(points, ndarray):
+        points = points.tolist()
+
+    points = sort_points_clockwise(points, clockwise=True)
     
     # bounding polygon
     #Convert a sequence of 2d coordinates to a polydata with a polygon

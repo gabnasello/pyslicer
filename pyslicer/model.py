@@ -131,6 +131,8 @@ def sort_points_clockwise(points, clockwise=True):
 
 def extrude_polygon_from_points(points,
                                 height=1, 
+                                rotate_x=0,
+                                rotate_y=0,
                                 rotate_z=0,
                                 scale=(0, 0, 0),
                                 transform=False,
@@ -165,7 +167,13 @@ def extrude_polygon_from_points(points,
 
     if scale!=(0, 0, 0):
         solid.scale(scale, inplace=True)
-    
+
+    if rotate_x!=0:
+        solid.rotate_x(rotate_x, inplace=True)
+
+    if rotate_y!=0:
+        solid.rotate_y(rotate_y, inplace=True)
+        
     if rotate_z!=0:
         solid.rotate_z(rotate_z, inplace=True)
         

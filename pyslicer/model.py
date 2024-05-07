@@ -91,6 +91,28 @@ def register_model_to_points(inputModel, inputFiducials):
 
     return transformNode
 
+def shrink_or_swell_shapely_polygon(my_polygon, factor=0.10, swell=False):
+    ''' returns the shapely polygon which is smaller or bigger by passed factor.
+        If swell = True , then it returns bigger polygon, else smaller '''
+    from shapely import geometry
+
+    shrink_factor = 0.10 #Shrink by 10%
+    xs = list(my_polygon.exterior.coords.xy[0])
+    ys = list(my_polygon.exterior.coords.xy[1])
+    x_center = 0.5 * min(xs) + 0.5 * max(xs)
+    y_center = 0.5 * min(ys) + 0.5 * max(ys)
+    min_corner = geometry.Point(min(xs), min(ys))
+    max_corner = geometry.Point(max(xs), max(ys))
+    center = geometry.Point(x_center, y_center)
+    shrink_distance = center.distance(min_corner)*factor
+
+    if swell:
+        my_polygon_resized = my_polygon.buffer(shrink_distance) #expand
+    else:
+        my_polygon_resized = my_polygon.buffer(-shrink_distance) #shrink  
+    
+    return my_polygon_resized
+
 def sort_points_clockwise(points, clockwise=True):
 
     from numpy import ndarray, array
@@ -164,10 +186,7 @@ def extrude_polygon_from_points(points,
     solid = polygon.extrude((0, 0, height), capping=True)
 
     solid.translate((0, 0, -height/2), inplace=True)
-
-    if scale!=(0, 0, 0):
-        solid.scale(scale, inplace=True)
-
+    
     if rotate_x!=0:
         solid.rotate_x(rotate_x, inplace=True)
 
@@ -176,6 +195,9 @@ def extrude_polygon_from_points(points,
         
     if rotate_z!=0:
         solid.rotate_z(rotate_z, inplace=True)
+
+    if scale!=(0, 0, 0):
+        solid.scale(scale, inplace=True)
         
     if transform is not False:
         if isinstance(transform, slicer.vtkMRMLTransformNode):

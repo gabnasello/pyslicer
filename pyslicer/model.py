@@ -153,6 +153,7 @@ def sort_points_clockwise(points, clockwise=True):
 
 def extrude_polygon_from_points(points,
                                 height=1, 
+                                sort_points = True,
                                 rotate_x=0,
                                 rotate_y=0,
                                 rotate_z=0,
@@ -175,12 +176,13 @@ def extrude_polygon_from_points(points,
     if isinstance(points, ndarray):
         points = points.tolist()
 
-    points = sort_points_clockwise(points, clockwise=True)
+    if sort_points is not False:
+        points = sort_points_clockwise(points, clockwise=True)
     
     # bounding polygon
     #Convert a sequence of 2d coordinates to a polydata with a polygon
     faces = [len(points), *range(len(points))]
-    polygon = PolyData([p + [z0,] for p in points], faces=faces)
+    polygon = PolyData([p + [z0,] for p in points], faces=faces).triangulate()
     
     # extrude
     solid = polygon.extrude((0, 0, height), capping=True)

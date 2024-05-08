@@ -1,16 +1,6 @@
 import slicer
 import numpy as np
 
-def labelmapNode(name='Labelmap'):
-    '''
-
-    '''
-    
-    labelmapNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLLabelMapVolumeNode')
-    labelmapNode.SetName(name)
-    
-    return labelmapNode
-
 def get_erode_shell_labelmap(erosion_level, labelmap, eroded_name = 'labelEroded', shell_name = 'labelShell'):
     '''
     
@@ -48,3 +38,13 @@ def get_erode_shell_array(erosion_level, label_array):
     array_shell = label_array - array_eroded
        
     return array_eroded, array_shell
+
+def labelmapNode(name='Labelmap'):
+    '''
+
+    '''
+    
+    labelmapNode = slicer.mrmlScene.AddNewNodeByClass('vtkMRMLLabelMapVolumeNode')
+    labelmapNode.SetName(name)
+    
+    return labelmapNode

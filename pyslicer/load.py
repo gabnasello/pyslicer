@@ -49,6 +49,31 @@ def imagestacks(first_image_file, spacing=False, quality='preview', volumeName='
     return masterVolumeNode
 
 
+def model(model_file, name = None, color=None):
+    '''
+    Load model file (e.g. .vtk, .stl) in Slicer. 
+
+    Args:
+        model_file (str): File path of the model to load
+        color (tuple): Display color of the Model Node. Insert the 3 RGB values in scale 0-1.
+
+    Returns:
+        modelNode (MRMLCore.vtkMRMLModelNode): model node 
+    '''
+
+    clrs = ('grey','yellow','red','green','blue')
+
+    modelNode = slicer.util.loadModel(model_file)
+    
+    if name != None:
+        modelNode.SetName(name)
+
+    if color:
+        displayNode = modelNode.GetDisplayNode()
+        displayNode.SetColor(color)
+
+    return modelNode
+
 def zstack(zstack_file, spacing=None, channel='Channel:0:0', color='grey'):
     '''
     Load .czi z-stack images in Slicer. 
@@ -144,27 +169,3 @@ def zstack(zstack_file, spacing=None, channel='Channel:0:0', color='grey'):
 
     return masterVolumeNode
 
-def model(model_file, name = None, color=None):
-    '''
-    Load model file (e.g. .vtk, .stl) in Slicer. 
-
-    Args:
-        model_file (str): File path of the model to load
-        color (tuple): Display color of the Model Node. Insert the 3 RGB values in scale 0-1.
-
-    Returns:
-        modelNode (MRMLCore.vtkMRMLModelNode): model node 
-    '''
-
-    clrs = ('grey','yellow','red','green','blue')
-
-    modelNode = slicer.util.loadModel(model_file)
-    
-    if name != None:
-        modelNode.SetName(name)
-
-    if color:
-        displayNode = modelNode.GetDisplayNode()
-        displayNode.SetColor(color)
-
-    return modelNode

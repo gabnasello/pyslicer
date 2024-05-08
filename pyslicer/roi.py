@@ -1,30 +1,6 @@
 import numpy as np
 import slicer
 
-def objectBounds_from_markupROI(nodename = 'R'):   
-    '''
-    Extract the bounds of the ROI Markup Node in a coordinate system centered in the ROI center and oriented as the ROI principal axes.
-
-    Args:
-        nodename (str): Name of the ROI markup node. Default "R"
-
-    Returns:
-        df_points (pandas.DataFrame): pandas dataframe listing the ROI boundary points in a (r,s,a) coordinate system centered in the ROI center and oriented as the ROI principal axes.
-    '''
-
-    from numpy import zeros
-    from pandas import DataFrame
-
-    roiNode = slicer.util.getNode(nodename)
-    
-    bounds = zeros(6)
-    roiNode.GetObjectBounds(bounds)
-
-    colnames = ['r', 'a', 's']
-    df_points = DataFrame(data=bounds.reshape([3,2]).transpose(), columns=colnames)
-        
-    return df_points
-
 def box_from_ROI(nodename = 'R'):
     '''
     Make a box model node from a ROI markup node
@@ -82,6 +58,29 @@ def bounding_box_from_points(df_points):
     
     return boxNode
 
+def objectBounds_from_markupROI(nodename = 'R'):   
+    '''
+    Extract the bounds of the ROI Markup Node in a coordinate system centered in the ROI center and oriented as the ROI principal axes.
+
+    Args:
+        nodename (str): Name of the ROI markup node. Default "R"
+
+    Returns:
+        df_points (pandas.DataFrame): pandas dataframe listing the ROI boundary points in a (r,s,a) coordinate system centered in the ROI center and oriented as the ROI principal axes.
+    '''
+
+    from numpy import zeros
+    from pandas import DataFrame
+
+    roiNode = slicer.util.getNode(nodename)
+    
+    bounds = zeros(6)
+    roiNode.GetObjectBounds(bounds)
+
+    colnames = ['r', 'a', 's']
+    df_points = DataFrame(data=bounds.reshape([3,2]).transpose(), columns=colnames)
+        
+    return df_points
 
 def roi_bounding_segments(segmentationNode):
     '''

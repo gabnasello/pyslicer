@@ -143,6 +143,16 @@ def extrude_polygon_from_points(points,
 
     return extrude_node
 
+def load(filename, color=(0,0,0)):
+
+    model = slicer.util.loadModel(filename)
+    
+    if any(color):
+        modelDisplayNode = model.GetDisplayNode()
+        modelDisplayNode.SetColor(color[0], color[1], color[2])
+
+    return model
+
 def register_model_to_points(inputModel, inputFiducials):
 
     from vtk import vtkMatrix4x4

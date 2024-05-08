@@ -143,13 +143,17 @@ def extrude_polygon_from_points(points,
 
     return extrude_node
 
-def load(filename, color=(0,0,0)):
+def load(filename, color=(0,0,0), opacity=0):
 
     model = slicer.util.loadModel(filename)
     
     if any(color):
         modelDisplayNode = model.GetDisplayNode()
         modelDisplayNode.SetColor(color[0], color[1], color[2])
+
+    if opacity!=0:
+        modelDisplayNode = model.GetDisplayNode()
+        modelDisplayNode.SetOpacity(opacity)
 
     return model
 

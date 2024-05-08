@@ -8,7 +8,7 @@ def fitPlane_from_pointMarkup(pointNodename = 'F',namePlane = 'Fitting Plane', s
     from trimesh.bounds import oriented_bounds
     from trimesh.transformations import inverse_matrix
     
-    df_points = ps.markup.points_from_markup(pointNodename)
+    df_points = points_from_markup(pointNodename)
        
     fitted_plane, plane_origin, plane_normal = fit_plane_to_points(df_points.to_numpy(), return_meta = True)
     

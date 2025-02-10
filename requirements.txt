@@ -2,3 +2,4 @@ aicsimageio
 pandas
 numpy
 shapely
+matplotlib

@@ -13,6 +13,66 @@ def default_dark_3D_view():
     # 0 - white
     show_ruler(thickness=2, color=0)
 
+
+def get_camera_3Dview(use_pandas=False, save_csv=False, csv_path="camera_view.csv"):
+    import csv
+
+    view = slicer.app.layoutManager().threeDWidget(0).threeDView()
+    viewNode = view.mrmlViewNode()
+
+    cameraNode = slicer.modules.cameras.logic().GetViewActiveCameraNode(viewNode)
+
+    position = cameraNode.GetPosition()
+    viewUp = cameraNode.GetViewUp()
+    focalPoint = cameraNode.GetFocalPoint()
+    viewAngle = cameraNode.GetViewAngle()
+    parallelScale = cameraNode.GetParallelScale()
+
+    data = [
+        {
+            "position": position[0],
+            "viewUp": viewUp[0],
+            "focalPoint": focalPoint[0],
+            "viewAngle": viewAngle,
+            "parallelScale": parallelScale,
+        },
+        {
+            "position": position[1],
+            "viewUp": viewUp[1],
+            "focalPoint": focalPoint[1],
+            "viewAngle": None,
+            "parallelScale": None,
+        },
+        {
+            "position": position[2],
+            "viewUp": viewUp[2],
+            "focalPoint": focalPoint[2],
+            "viewAngle": None,
+            "parallelScale": None,
+        },
+    ]
+
+    # Save to CSV without pandas
+    if save_csv:
+        with open(csv_path, mode="w", newline="") as f:
+            writer = csv.DictWriter(
+                f,
+                fieldnames=["position", "viewUp", "focalPoint", "viewAngle", "parallelScale"],
+            )
+            writer.writeheader()
+            writer.writerows(data)
+
+    if use_pandas:
+        try:
+            import pandas as pd
+            df = pd.DataFrame(data)
+            df.index = [1, 2, 3]
+            return df
+        except ImportError:
+            pass
+
+    return data
+
 def screenshot_3Dview(outputfile):
     import ScreenCapture
     cap = ScreenCapture.ScreenCaptureLogic()

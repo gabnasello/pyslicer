@@ -154,6 +154,24 @@ def get_camera_3Dview(use_pandas=False, save_csv=False, csv_path="camera_view.cs
 
     return data
 
+def reset_camera_to_fit_all_visible_models():
+    """
+    Reset camera to fit all visible models in the 3D view.
+    """
+    threeDView = slicer.app.layoutManager().threeDWidget(0).threeDView()
+    threeDView.resetCamera()
+
+    renderer = threeDView.renderWindow().GetRenderers().GetFirstRenderer()
+
+    bounds = renderer.ComputeVisiblePropBounds()
+    dx = bounds[1] - bounds[0]
+    dy = bounds[3] - bounds[2]
+
+    camera = threeDView.cameraNode()
+    camera.SetParallelScale(max(dx, dy))
+
+    threeDView.forceRender()
+
 def screenshot_3Dview(outputfile):
     import ScreenCapture
     cap = ScreenCapture.ScreenCaptureLogic()

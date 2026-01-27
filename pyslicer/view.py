@@ -1,4 +1,85 @@
 import slicer
+import vtk
+import cv2
+import numpy as np
+import os
+
+def create_rotation_video(output_video_path, rotation_degrees=360, steps=180, fps=30, resolution=(1280, 720)):
+    """
+    Creates a rotation video of a 3D model.
+
+    Args:
+        output_video_path (Path): The path where the output video will be saved.
+        rotation_degrees (int, optional): The total rotation in degrees. Defaults to 360.
+        steps (int, optional): The number of frames. Defaults to 180.
+        fps (int, optional): The frames per second. Defaults to 30.
+        resolution (tuple, optional): The width and height of the video. Defaults to (1280, 720).
+    """
+
+    # -------------------------
+    # SETUP 3D VIEW
+    # -------------------------
+    layout_manager = slicer.app.layoutManager()
+    three_d_widget = layout_manager.threeDWidget(0)
+    three_d_view = three_d_widget.threeDView()
+    render_window = three_d_view.renderWindow()
+
+    camera = three_d_view.cameraNode().GetCamera()
+
+    # Reset camera to nicely frame the model
+    three_d_view.resetFocalPoint()
+    three_d_view.resetCamera()
+    slicer.app.processEvents()
+
+    # -------------------------
+    # VIDEO WRITER
+    # -------------------------
+    fourcc = cv2.VideoWriter_fourcc(*"mp4v")
+    video_writer = cv2.VideoWriter(
+        output_video_path,
+        fourcc,
+        fps,
+        resolution
+    )
+
+    # -------------------------
+    # ROTATION + CAPTURE
+    # -------------------------
+    angle_step = rotation_degrees / steps
+
+    for i in range(steps):
+        camera.Azimuth(angle_step)
+        render_window.Render()
+        slicer.app.processEvents()
+
+        # Capture image from render window
+        wti = vtk.vtkWindowToImageFilter()
+        wti.SetInput(render_window)
+        wti.Update()
+
+        vtk_image = wti.GetOutput()
+        width, height, _ = vtk_image.GetDimensions()
+
+        vtk_array = vtk_image.GetPointData().GetScalars()
+        components = vtk_array.GetNumberOfComponents()
+        image = np.frombuffer(vtk_array, dtype=np.uint8)
+        image = image.reshape(height, width, components)
+
+        # Convert RGB → BGR
+        frame = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+
+        # FIX: flip vertically (VTK bottom-left → OpenCV top-left)
+        frame = np.flipud(frame)
+
+        # Resize and write
+        frame = cv2.resize(frame, resolution)
+        video_writer.write(frame)
+
+    # -------------------------
+    # CLEANUP
+    # -------------------------
+    video_writer.release()
+    print("Video saved to:", output_video_path)
 
 def default_dark_3D_view():
     set_windowsize(x=1980,y=1080)

@@ -26,10 +26,10 @@ def create_rotation_video(output_video_path, rotation_degrees=360, steps=180, fp
 
     camera = three_d_view.cameraNode().GetCamera()
 
-    # Reset camera to nicely frame the model
-    three_d_view.resetFocalPoint()
-    three_d_view.resetCamera()
-    slicer.app.processEvents()
+    ## Reset camera to nicely frame the model
+    #three_d_view.resetFocalPoint()
+    #three_d_view.resetCamera()
+    #slicer.app.processEvents()
 
     # -------------------------
     # VIDEO WRITER

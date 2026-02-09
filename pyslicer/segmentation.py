@@ -177,7 +177,8 @@ def segment_statistics(segmentationNode, masterVolumeNode=None, extra_keys=None)
     masterVolumeNode : vtkMRMLScalarVolumeNode, optional
         Needed for intensity‑based metrics.
     extra_keys : list of str, optional
-        Example: ["centroid", "surface_area", "roundness"].
+        Example: ["centroid_ras", "feret_diameter_mm", "surface_area_mm2", "roundness", 
+              "flatness", "elongation","principal_moments"].
 
     Returns
     -------
@@ -200,7 +201,7 @@ def segment_statistics(segmentationNode, masterVolumeNode=None, extra_keys=None)
     # Extra statistic keys from LabelmapSegmentStatisticsPlugin
     if extra_keys:
         for key in extra_keys:
-            paramNode.SetParameter(f"LabelmapSegmentStatisticsPlugin.{key}", "True")
+            paramNode.SetParameter(f"LabelmapSegmentStatisticsPlugin.{key}.enabled", "True")
 
     # Compute statistics
     logic.computeStatistics()

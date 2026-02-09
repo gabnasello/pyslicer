@@ -118,6 +118,97 @@ def remove_small_islands(minimum_size, segment_name, segmentEditorNode, segmentE
     effect.setParameter("Operation","REMOVE_SMALL_ISLANDS")
     effect.self().onApply()
 
+def stats_to_dataframe(stats, orientation="long"):
+    """
+    Convert SegmentStatisticsLogic.getStatistics() dict to a pandas DataFrame.
+
+    Parameters
+    ----------
+    stats : dict
+        Output of SegmentStatisticsLogic.getStatistics().
+    orientation : {"long", "wide"}, default "long"
+        "long" returns one row per segment per measurement with full metadata.
+        "wide" returns one row per segment with one column per measurement value.
+
+    Returns
+    -------
+    pandas.DataFrame
+    """
+    try:
+        import pandas as pd
+    except Exception as e:
+        raise ImportError(
+            "pandas is required to build a DataFrame. "
+            "Install pandas in your Slicer Python environment."
+        ) from e
+
+    segment_ids = stats.get("SegmentIDs", [])
+    measurement_info = stats.get("MeasurementInfo", {})
+
+    # Collect rows from tuple keys: (segmentName, measurementKey) -> value
+    rows = []
+    for k, v in stats.items():
+        if not isinstance(k, tuple) or len(k) != 2:
+            continue
+
+        segment, measurement_key = k
+
+        # Skip the identity row
+        if measurement_key == "Segment":
+            continue
+
+        info = measurement_info.get(measurement_key, {})
+        plugin, short_key = measurement_key.split(".", 1) if "." in measurement_key else ("", measurement_key)
+
+        row = {
+            "segment": segment,
+            "measurement_key": measurement_key,
+            "plugin": plugin,
+            "short_key": short_key,
+            "value": v,
+            "name": info.get("name"),
+            "title": info.get("title"),
+            "description": info.get("description"),
+            "units": info.get("units"),
+        }
+
+        # Include any available DICOM metadata as separate columns
+        for mk, mv in info.items():
+            if isinstance(mk, str) and mk.startswith("DICOM."):
+                row[mk] = mv
+
+        rows.append(row)
+
+    df_long = pd.DataFrame(rows)
+
+    if df_long.empty:
+        return df_long
+
+    # A human readable display name like "Mean [HU]" when units are present
+    def make_display_name(row):
+        nm = row.get("name") or row.get("title") or row.get("short_key")
+        units = row.get("units")
+        return f"{nm} [{units}]" if units else nm
+
+    df_long["display_name"] = df_long.apply(make_display_name, axis=1)
+
+    # Sort for stable presentation
+    df_long = df_long.sort_values(["segment", "plugin", "short_key"]).reset_index(drop=True)
+
+    if orientation == "long":
+        return df_long
+
+    # Build wide layout
+    df_wide = (
+        df_long
+        .pivot_table(index="segment", columns="display_name", values="value", aggfunc="first")
+        .reset_index()
+    )
+    df_wide.columns.name = None
+    cols = ["segment"] + [c for c in df_wide.columns if c != "segment"]
+    df_wide = df_wide[cols]
+    return df_wide
+
 def segmentationNode(name='Segmentation'):
     '''
 

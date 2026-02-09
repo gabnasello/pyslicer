@@ -165,17 +165,47 @@ def segments_by_thresholding(segments_greyvalues, segmentationNode, segmentEdito
         effect.setParameter("MaximumThreshold",str(thresholdMax))
         effect.self().onApply()
 
-def segment_statistics(segmentationNode):
-    '''
+def segment_statistics(segmentationNode, masterVolumeNode=None, extra_keys=None):
+    """
+    Compute segment statistics with optional extra keys from the
+    LabelmapSegmentStatisticsPlugin.
 
-    '''
-    
+    Parameters
+    ----------
+    segmentationNode : vtkMRMLSegmentationNode
+        Segmentation to analyze.
+    masterVolumeNode : vtkMRMLScalarVolumeNode, optional
+        Needed for intensity‑based metrics.
+    extra_keys : list of str, optional
+        Example: ["centroid", "surface_area", "roundness"].
+
+    Returns
+    -------
+    dict
+        Nested dictionary with statistics for each segment.
+    """
+
     import SegmentStatistics
-    segStatLogic = SegmentStatistics.SegmentStatisticsLogic()
-    segStatLogic.getParameterNode().SetParameter("Segmentation", segmentationNode.GetID())
-    segStatLogic.computeStatistics()
-    stats = segStatLogic.getStatistics()
-    
+
+    logic = SegmentStatistics.SegmentStatisticsLogic()
+    paramNode = logic.getParameterNode()
+
+    # Required segmentation parameter
+    paramNode.SetParameter("Segmentation", segmentationNode.GetID())
+
+    # Optional scalar volume parameter (if you want intensity statistics)
+    if masterVolumeNode:
+        paramNode.SetParameter("ScalarVolume", masterVolumeNode.GetID())
+
+    # Extra statistic keys from LabelmapSegmentStatisticsPlugin
+    if extra_keys:
+        for key in extra_keys:
+            paramNode.SetParameter(f"LabelmapSegmentStatisticsPlugin.{key}", "True")
+
+    # Compute statistics
+    logic.computeStatistics()
+    stats = logic.getStatistics()
+
     return stats
 
       

@@ -111,34 +111,34 @@ def margin_segmentation(
     segmentEditorNode,
     segmentEditorWidget,
     segment_name=None,
-    shrink_pixels=None,
-    shrink_mm=None,
+    margin_pixels=None,
+    margin_mm=None,
     apply_to_all_visible=False
 ):
     """
     Apply Margin effect (grow/shrink) to segmentation.
 
-    Exactly ONE of `shrink_pixels` or `shrink_mm` must be provided.
+    Exactly ONE of `margin_pixels` or `margin_mm` must be provided.
 
     Parameters
     ----------
-    shrink_pixels : int, optional
+    margin_pixels : int, optional
         Number of voxels to grow (+) or shrink (−).
         Example: -5 → shrink by 5 pixels.
-    shrink_mm : float, optional
+    margin_mm : float, optional
         Margin size in millimeters.
         Example: -0.1 → shrink by 0.1 mm.
     """
 
     # --- Safety checks ---------------------------------------------------------
-    if (shrink_pixels is None and shrink_mm is None) or \
-       (shrink_pixels is not None and shrink_mm is not None):
-        raise ValueError("Provide exactly one of shrink_pixels or shrink_mm")
+    if (margin_pixels is None and margin_mm is None) or \
+       (margin_pixels is not None and margin_mm is not None):
+        raise ValueError("Provide exactly one of margin_pixels or margin_mm")
 
     # --- Convert pixels → mm if needed ----------------------------------------
-    if shrink_mm is None:
+    if margin_mm is None:
         spacing = masterVolumeNode.GetSpacing()
-        shrink_mm = shrink_pixels * spacing[0]
+        margin_mm = margin_pixels * spacing[0]
 
     # --- Configure Segment Editor ---------------------------------------------
     segmentEditorWidget.setActiveEffectByName("Margin")
@@ -150,7 +150,7 @@ def margin_segmentation(
         segmentID = segmentationNode.GetSegmentation().GetSegmentIdBySegmentName(segment_name)
         segmentEditorNode.SetSelectedSegmentID(segmentID)
 
-    effect.setParameter("MarginSizeMm", str(shrink_mm))
+    effect.setParameter("MarginSizeMm", str(margin_mm))
     effect.self().onApply()
 
 

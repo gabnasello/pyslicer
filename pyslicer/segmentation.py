@@ -104,7 +104,56 @@ def logical_intersect(segment_name, modifier_segment_name, segmentationNode, seg
     effect.setParameter("Operation","INTERSECT")
     effect.setParameter("ModifierSegmentID", modifier_segmentId)
     effect.self().onApply()
-    
+
+def margin_segmentation(
+    segmentationNode,
+    masterVolumeNode,
+    segmentEditorNode,
+    segmentEditorWidget,
+    segment_name=None,
+    shrink_pixels=None,
+    shrink_mm=None,
+    apply_to_all_visible=False
+):
+    """
+    Apply Margin effect (grow/shrink) to segmentation.
+
+    Exactly ONE of `shrink_pixels` or `shrink_mm` must be provided.
+
+    Parameters
+    ----------
+    shrink_pixels : int, optional
+        Number of voxels to grow (+) or shrink (−).
+        Example: -5 → shrink by 5 pixels.
+    shrink_mm : float, optional
+        Margin size in millimeters.
+        Example: -0.1 → shrink by 0.1 mm.
+    """
+
+    # --- Safety checks ---------------------------------------------------------
+    if (shrink_pixels is None and shrink_mm is None) or \
+       (shrink_pixels is not None and shrink_mm is not None):
+        raise ValueError("Provide exactly one of shrink_pixels or shrink_mm")
+
+    # --- Convert pixels → mm if needed ----------------------------------------
+    if shrink_mm is None:
+        spacing = masterVolumeNode.GetSpacing()
+        shrink_mm = shrink_pixels * spacing[0]
+
+    # --- Configure Segment Editor ---------------------------------------------
+    segmentEditorWidget.setActiveEffectByName("Margin")
+    effect = segmentEditorWidget.activeEffect()
+
+    if apply_to_all_visible:
+        effect.setParameter("ApplyToAllVisibleSegments", 1)
+    else:
+        segmentID = segmentationNode.GetSegmentation().GetSegmentIdBySegmentName(segment_name)
+        segmentEditorNode.SetSelectedSegmentID(segmentID)
+
+    effect.setParameter("MarginSizeMm", str(shrink_mm))
+    effect.self().onApply()
+
+
 def remove_small_islands(minimum_size, segment_name, segmentEditorNode, segmentEditorWidget):
     '''
     REMOVE_SMALL_ISLANDS operation from the [SegmentEditorIslandsEffect](https://github.com/Slicer/Slicer/blob/294ef47edbac2ccb194d5ee982a493696795cdc0/Modules/Loadable/Segmentations/EditorEffects/Python/SegmentEditorIslandsEffect.py#L402)

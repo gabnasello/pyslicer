@@ -91,6 +91,32 @@ def keep_largest_island(minimum_size, segment_name, segmentEditorNode, segmentEd
     effect.setParameter("Operation","KEEP_LARGEST_ISLAND")
     effect.self().onApply()
 
+def keep_segments_by_name(segment_names, segmentationNode):
+    """
+    Delete all segments in the segmentationNode except those listed in
+    segment_names.
+
+    Parameters
+    ----------
+    segment_names : list of str
+        List of segment names that should be kept.
+    segmentationNode : vtkMRMLSegmentationNode
+        The segmentation node to clean.
+    """
+    segmentation = segmentationNode.GetSegmentation()
+
+    # Get all existing segment IDs first (avoid modifying while iterating)
+    all_segment_ids = [
+        segmentation.GetNthSegmentID(i)
+        for i in range(segmentation.GetNumberOfSegments())
+    ]
+
+    # Remove segments not in the keep list
+    for seg_id in all_segment_ids:
+        seg_name = segmentation.GetSegment(seg_id).GetName()
+        if seg_name not in segment_names:
+            segmentation.RemoveSegment(seg_id)
+
 def logical_intersect(segment_name, modifier_segment_name, segmentationNode, segmentEditorNode, segmentEditorWidget):
     '''
     '''

@@ -1,10 +1,12 @@
 import slicer
-import vtk
-import cv2
 import numpy as np
 import os
 
 def create_rotation_video(output_video_path, rotation_degrees=360, steps=180, fps=30, resolution=(1280, 720)):
+
+    import cv2
+    import vtk
+
     """
     Creates a rotation video of a 3D model.
 

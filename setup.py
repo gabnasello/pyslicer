@@ -1,24 +1,25 @@
 from setuptools import setup, find_packages
 
+extended_deps = [
+    "shapely",
+    "matplotlib",
+    "opencv-python"
+]
+
 setup(
     name="pyslicer",
     version="0.2.2",
     packages=find_packages(),
     py_modules=["pyslicer"],
 
-    # Required dependencies
     install_requires=[
         "numpy",
         "pandas",
-        "slicer"
+        "slicer",
     ],
 
-    # Optional extras
     extras_require={
-        "extended": [
-            "shapely",
-            "matplotlib",
-            "opencv-python"
-        ]
+        "extended": extended_deps,
+        "all": extended_deps
     }
 )
